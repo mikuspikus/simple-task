@@ -1,0 +1,30 @@
+version: "3.3"
+
+networks:
+  psql-integration-network:
+    driver: bridge
+
+services:
+  psql:
+    image: postgres:12.0-alpine
+    expose:
+      - 5432
+    volumes:
+      - ./.sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    env_file:
+      - .sql/.env
+    networks:
+      - psql-integration-network
+
+  app:
+    build:
+      context: ..
+      dockerfile: ./test/.api/Dockerfile.test
+    env_file:
+      - .sql/.env
+    links:
+      - psql
+    depends_on:
+      - psql
+    networks:
+      - psql-integration-network
